@@ -4,4 +4,5 @@ class Particle:
         self.velocity = velocity
     
     def update_state(self, dt, acceleration):
-        pass
+        self.velocity += dt * acceleration
+        self.position += dt * self.velocity
