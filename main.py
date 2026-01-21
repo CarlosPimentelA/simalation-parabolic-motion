@@ -4,8 +4,14 @@ import matplotlib.pyplot as plt
 from classes import particle
 from classes import enviroment as env
 
+# Estilo del grafico
+plt.style.use('seaborn-v0_8-darkgrid')
+COLOR_TRAYECTORIA = '#FF6B6B'
+COLOR_PUNTOS = '#4ECDC4'
+
 # Lista para almacenar las posiciones del objeto en movimiento
 obj_mov = []
+tiempos = []  # almacenar el tiempo en cada punto
 
 # Crear instancia del entorno fisico
 enviroment = env.Enviroment()
@@ -14,6 +20,10 @@ enviroment = env.Enviroment()
 # Velocidad: metros/segundo
 # Distancia: metros
 # Angulo: grados
+print("=" * 50)
+print("SIMULACIÓN DE MOVIMIENTO PARABÓLICO")
+print("=" * 50)
+
 initial_velocity = float(input("Velocidad inicial(m/s): "))
 theta = float(input("Grados de inclinacion: "))
 initial_distance = float(input("Posicion en x inicial(m): "))
@@ -24,14 +34,15 @@ velocity_x = initial_velocity * np.cos(np.deg2rad(theta))
 velocity_y = initial_velocity * np.sin(np.deg2rad(theta))
 
 # ================= CONFIGURACIoN DE LA SIMULACIoN =================
-dt = 0.01  # Cuanto menor dt, mayor precision (0.01s = 10ms)
+dt = 0.01  # cuanto menor dt, mayor precision (0.01s = 10ms)
+tiempo_total = 0  # iniciar contador de tiempo
 
 # Obtener aceleracion del entorno
 acceleration = enviroment.get_acceleration()
 
 # Definir vectores de estado inicial
-position = np.array([initial_distance, initial_height])  # [x, y] en metros
-velocity = np.array([velocity_x, velocity_y])  # [vₓ, vᵧ] en m/s
+position = np.array([initial_distance, initial_height])
+velocity = np.array([velocity_x, velocity_y])
 
 # Crear particula con estado inicial
 particle = particle.Particle(position, velocity)
@@ -45,19 +56,65 @@ while particle.position[1] >= 0:
     # Guardar copia de la posicion actual para graficar
     obj_mov.append(particle.position.copy())
 
-# ================= PROCESAMIENTO DE DATOS =================
-x_axis = []  # Lista de posiciones horizontales (m)
-y_axis = []  # Lista de posiciones verticales (m)
+    # Guardar tiempo actual
+    tiempos.append(tiempo_total)
+    tiempo_total += dt
 
-for obj in obj_mov:
-    x_axis.append(obj[0])  # Coordenada x en metros
-    y_axis.append(obj[1])  # Coordenada y en metros
+# ================= PROCESAMIENTO DE DATOS =================
+# Extraer coordenadas
+x_axis = [pos[0] for pos in obj_mov]
+y_axis = [pos[1] for pos in obj_mov]
+
+# Calcular métricas importantes
+alcance_maximo = x_axis[-1] - initial_distance
+altura_maxima = max(y_axis)
+tiempo_vuelo = tiempo_total
+
+# Encontrar el punto de altura máxima
+altura_max = np.argmax(y_axis)
+x_altura_max = x_axis[altura_max]
+y_altura_max = y_axis[altura_max]
+
+# Velocidad final
+velocidad_final = np.linalg.norm(particle.velocity)
+
+# ================= RESULTADOS EN CONSOLA =================
+print("\n" + "=" * 50)
+print("RESULTADOS DE LA SIMULACION")
+print("=" * 50)
+print(f"• Velocidad inicial: {initial_velocity} m/s")
+print(f"• Angulo de lanzamiento: {theta}°")
+print(f"• Tiempo de vuelo: {tiempo_vuelo:.2f} segundos")
+print(f"• Alcance horizontal total: {alcance_maximo:.2f} metros")
+print(f"• Altura maxima alcanzada: {altura_maxima:.2f} metros")
+print(f"• Velocidad final de impacto: {velocidad_final:.2f} m/s")
+print("=" * 50)
 
 # ================= VISUALIZACION =================
-plt.plot(x_axis, y_axis)
-plt.title('Trayectoria Parabolica')  # Titulo del grafico
-plt.xlabel('Distancia horizontal (m)')  # Eje x en metros
-plt.ylabel('Altura (m)')  # Eje y en metros
-plt.xlim(0, 500)  # Limite del eje x: 0 a 500 metros
-plt.ylim(0, 500)  # Limite del eje y: 0 a 500 metros
-plt.show()  # Mostrar grafico
+plt.plot(x_axis, y_axis, color=COLOR_TRAYECTORIA, linewidth=2.5, 
+         label='Trayectoria', zorder=1) # grafico de la trayectoria
+plt.scatter([initial_distance], [initial_height], color=COLOR_PUNTOS, 
+           s=150, label='Punto de inicio', zorder=2, edgecolors='black') # punto de inicio
+plt.scatter([x_altura_max], [y_altura_max], color='#FFD166', 
+           s=150, label='Altura maxima', zorder=2, edgecolors='black') # punto de altura maxima
+plt.scatter([x_axis[-1]], [0], color='#EF476F', 
+           s=150, label='Punto de impacto', zorder=2, edgecolors='black') # punto de impacto
+
+# Lineas de referencia para altura máxima
+plt.axhline(y=altura_maxima, color='gray', linestyle='--', alpha=0.5, linewidth=1) # linea horizontal
+plt.axvline(x=x_altura_max, color='gray', linestyle='--', alpha=0.5, linewidth=1) # linea vertical
+
+plt.xlabel('Distancia horizontal (m)', fontsize=12, fontweight='bold') # etiqueta del eje x
+plt.ylabel('Altura (m)', fontsize=12, fontweight='bold') # etiqueta del eje y
+plt.title('TRAYECTORIA PARABOLICA', fontsize=14, fontweight='bold', pad=20) # titulo del grafico
+plt.grid(True, alpha=0.4) # activar cuadricula
+plt.legend(loc='upper right', fontsize=10) # mostrar leyenda
+
+# Ajustar limites automaticamente con margen
+margen_x = max(10, alcance_maximo * 0.1)
+margen_y = max(10, altura_maxima * 0.1)
+plt.xlim(initial_distance - margen_x, x_axis[-1] + margen_x)
+plt.ylim(-5, altura_maxima + margen_y)
+
+plt.tight_layout() # ajustar para que todo quepa
+plt.show() # mostrar grafico
