@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from classes import particle
 from classes import enviroment as env
+from matplotlib.animation import FuncAnimation
 
 # Estilo del grafico
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -37,25 +38,22 @@ velocity_y = initial_velocity * np.sin(np.deg2rad(theta))
 dt = 0.01  # cuanto menor dt, mayor precision (0.01s = 10ms)
 tiempo_total = 0  # iniciar contador de tiempo
 
-# Obtener aceleracion del entorno
-acceleration = enviroment.get_acceleration()
-
 # Definir vectores de estado inicial
 position = np.array([initial_distance, initial_height])
 velocity = np.array([velocity_x, velocity_y])
 
 # Crear particula con estado inicial
-particle = particle.Particle(position, velocity)
-
+particle = particle.Particle(position, velocity, enviroment)
+acceleration = enviroment.compute_acceleration() # Usar para probar con Euler (metodo numerico)
 # ================= BUCLE DE SIMULACION =================
 # Simular mientras la particula este por encima del suelo (y ≥ 0)
 while particle.position[1] >= 0:
     # Actualizar estado de la particula
-    particle.update_state(dt, acceleration)
-
+    particle.update_state_rk4(0, dt)
+    #particle.update_state(dt, acceleration)
+    
     # Guardar copia de la posicion actual para graficar
     obj_mov.append(particle.position.copy())
-
     # Guardar tiempo actual
     tiempos.append(tiempo_total)
     tiempo_total += dt
@@ -91,15 +89,27 @@ print(f"• Velocidad final de impacto: {velocidad_final:.2f} m/s")
 print("=" * 50)
 
 # ================= VISUALIZACION =================
-plt.plot(x_axis, y_axis, color=COLOR_TRAYECTORIA, linewidth=2.5, 
-         label='Trayectoria', zorder=1) # grafico de la trayectoria
-plt.scatter([initial_distance], [initial_height], color=COLOR_PUNTOS, 
-           s=150, label='Punto de inicio', zorder=2, edgecolors='black') # punto de inicio
-plt.scatter([x_altura_max], [y_altura_max], color='#FFD166', 
-           s=150, label='Altura maxima', zorder=2, edgecolors='black') # punto de altura maxima
-plt.scatter([x_axis[-1]], [0], color='#EF476F', 
-           s=150, label='Punto de impacto', zorder=2, edgecolors='black') # punto de impacto
+# Crear la base del gráfico
+fig, ax = plt.subplots()
+ax.set_xlim(0, max(x_axis) * 1.05)
+ax.set_ylim(0, max(y_axis) * 1.1)
 
+# La coma después del nombre (linea,) es necesaria porque ax.plot devuelve una lista
+linea, = ax.plot([], [], color=COLOR_TRAYECTORIA, lw=2)
+punto, = ax.plot([], [], 'o', color='#EF476F', markersize=10)
+
+def update(i):
+    # 'i' irá desde 0 hasta el final de tus datos
+    # Actualizamos la línea con todos los puntos hasta el actual 'i'
+    linea.set_data(x_axis[:i], y_axis[:i])
+    
+    # Actualizamos el punto solo con la posición actual
+    punto.set_data([x_axis[i]], [y_axis[i]])
+    
+    return linea, punto
+
+
+ani = FuncAnimation(fig, update, frames=len(x_axis), interval=10, blit=True, repeat=False)
 # Lineas de referencia para altura máxima
 plt.axhline(y=altura_maxima, color='gray', linestyle='--', alpha=0.5, linewidth=1) # linea horizontal
 plt.axvline(x=x_altura_max, color='gray', linestyle='--', alpha=0.5, linewidth=1) # linea vertical
@@ -108,8 +118,6 @@ plt.xlabel('Distancia horizontal (m)', fontsize=12, fontweight='bold') # etiquet
 plt.ylabel('Altura (m)', fontsize=12, fontweight='bold') # etiqueta del eje y
 plt.title('TRAYECTORIA PARABOLICA', fontsize=14, fontweight='bold', pad=20) # titulo del grafico
 plt.grid(True, alpha=0.4) # activar cuadricula
-plt.legend(loc='upper right', fontsize=10) # mostrar leyenda
-
 # Ajustar limites automaticamente con margen
 margen_x = max(10, alcance_maximo * 0.1)
 margen_y = max(10, altura_maxima * 0.1)
