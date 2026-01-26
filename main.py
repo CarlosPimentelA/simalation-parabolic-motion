@@ -1,9 +1,12 @@
 # main.py - Simulacion de tiro parabolico
 import numpy as np
 import matplotlib.pyplot as plt
-from classes import particle
-from classes import enviroment as env
+from classes.particle import Particle
+from classes.enviroment import Enviroment
 from matplotlib.animation import FuncAnimation
+
+# Constantes
+GRAVITY = 9.81
 
 # Estilo del grafico
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -15,7 +18,7 @@ obj_mov = []
 tiempos = []  # almacenar el tiempo en cada punto
 
 # Crear instancia del entorno fisico
-enviroment = env.Enviroment()
+enviroment = Enviroment(GRAVITY)
 
 # ================= ENTRADA DE PARaMETROS INICIALES =================
 # Velocidad: metros/segundo
@@ -29,6 +32,7 @@ initial_velocity = float(input("Velocidad inicial(m/s): "))
 theta = float(input("Grados de inclinacion: "))
 initial_distance = float(input("Posicion en x inicial(m): "))
 initial_height = float(input("Posicion en y inicial(m): "))
+mass = float(input("Masa de la pelota (kg): "))
 
 # ================= DESCOMPOSICION VECTORIAL DE VELOCIDAD =================
 velocity_x = initial_velocity * np.cos(np.deg2rad(theta))
@@ -43,7 +47,7 @@ position = np.array([initial_distance, initial_height])
 velocity = np.array([velocity_x, velocity_y])
 
 # Crear particula con estado inicial
-particle = particle.Particle(position, velocity, enviroment)
+particle = Particle(position, velocity, mass, enviroment)
 acceleration = enviroment.compute_acceleration() # Usar para probar con Euler (metodo numerico)
 # ================= BUCLE DE SIMULACION =================
 # Simular mientras la particula este por encima del suelo (y ≥ 0)
