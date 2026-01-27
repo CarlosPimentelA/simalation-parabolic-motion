@@ -1,10 +1,10 @@
 import numpy as np
 
 class Particle:
-    def __init__(self, position, velocity, mass, enviroment):
+    def __init__(self, position, velocity, mass, environment):
         self.position = position
         self.velocity = velocity
-        self.env = enviroment
+        self.env = environment
         self.mass = mass
     
     def update_state(self, dt, acceleration):
@@ -15,7 +15,8 @@ class Particle:
     def state_derivatives(self, t, state):
         position = state[:2]
         velocity = state[2:]
-        acceleration = self.env.compute_acceleration()
+
+        acceleration = self.env.compute_acceleration(velocity) # Velocidad necesaria
         return np.concatenate((velocity, acceleration))
     
     def update_state_rk4(self, t, dt):
