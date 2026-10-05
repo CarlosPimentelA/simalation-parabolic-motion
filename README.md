@@ -1,10 +1,8 @@
-# 🚀 Simulación de Movimiento Parabólico
+# Simulación de Movimiento Parabólico
 
 Una simulación en Python sobre lanzamiento de proyectiles. (Tiro parabólico)
 
-## 🛠️ Estructura del Proyecto
-
-El código está organizado siguiendo principios de Programación Orientada a Objetos (POO):
+## Estructura del Proyecto
 
 | Archivo | Responsabilidad |
 | :--- | :--- |
@@ -22,7 +20,7 @@ El código está organizado siguiendo principios de Programación Orientada a Ob
 
 ---
 
-## 📊 Ejemplo de Resultados
+## Ejemplo de Resultados
 
 Al ejecutar la simulación, obtendrás métricas detalladas en la terminal y un gráfico interactivo:
 
@@ -33,9 +31,7 @@ Al ejecutar la simulación, obtendrás métricas detalladas en la terminal y un 
 
 ---
 
-## 👥 Autores
+## Autores
 
-Este proyecto fue desarrollado con pasión por la física y el código:
-
-* **CarlosPimentelA** - *Creador y Arquitecto Principal*
-* **Shelaxh** - *Colaborador Principal*
+* **CarlosPimentelA** 
+* **Shelaxh**
